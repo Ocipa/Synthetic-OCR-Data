@@ -2,9 +2,13 @@
 
 
 from typing import Text
+
+from numpy.random.mtrand import rand
 from sodgen import config
 from sodgen.config import Config
 from sodgen.fonts import *
+
+from math import floor, ceil
 
 import random
 import numpy as np
@@ -43,7 +47,7 @@ class image():
 
         draw = ImageDraw.Draw(self.image)
         draw.text(
-            (128 - center[1], 128 - center[0]),
+            (0 - center[1], 0 - center[0]),
             '00',
             fill = text.font_fill,
             font = text.font.get_font(text.font_size),
@@ -56,7 +60,7 @@ class image():
         draw.line([(128, 0), (128, 256)], fill=0, width=2)
         draw.line([(0, 128), (256, 128)], fill=0, width=2)
 
-        #self._draw_mask(text)
+        self._draw_mask(text)
 
         
     
@@ -64,29 +68,29 @@ class image():
         mask, offset = text.get_mask('00')
         height, width = mask.shape
 
-        center = text.get_center('00')
+        im_width, im_height = self.config.size
 
-        # b_pad = 128 - int(height / 2)
-        # t_pad = 256 - (b_pad + height)
+        pos = (random.randint(0, 256), random.randint(0, 256)) #x, y
 
-        # r_pad = 128 - int(width / 2)
-        # l_pad = 256 - (r_pad + width)
+        mask = mask[np.abs(np.clip((pos[1] - floor(height / 2)), -999, 0)):np.abs(pos[1] - im_height - ceil(height / 2))]
+        mask = mask[:, np.abs(np.clip(pos[0] - floor(width / 2), -999, 0)):np.abs(pos[0] - im_width - ceil(width / 2))]
 
-        t_pad = 128 - int(height / 2) + int(offset[1])
-        b_pad = 256 - (t_pad + height)
+        new_height, new_width = mask.shape
 
-        l_pad = 128 - int(width / 2) + int(offset[0])
-        r_pad = 256 - (l_pad + width)
+        top_pad = np.clip(pos[1] - ceil(new_height / (2 / (height / new_height))), 0, im_height)
+        bottom_pad = im_height - (top_pad + new_height)
 
-        mask = np.pad(mask, ((t_pad, b_pad), (l_pad, r_pad)))
-        mask = np.dstack((mask, mask, mask))
+        left_pad = np.clip(pos[0] - ceil(new_width / (2 / (width / new_width))), 0, im_width)
+        right_pad = im_width - (left_pad + new_width)
+
+        padded_mask = np.pad(mask, ((top_pad, bottom_pad), (left_pad, right_pad)))
+
+        padded_mask = np.dstack((padded_mask, padded_mask, padded_mask))
 
         im1 = np.array(self.image)
         im2 = np.full((256, 256, 3), fill_value=128, dtype=np.uint8)
 
-        #self.image = mask / 255 * im2 + (1 - mask / 255) * im1
-
-        self.image = np.where(mask == 255, im2, im1)
+        self.image = np.where(padded_mask == 255, im2, im1)
 
 
 
