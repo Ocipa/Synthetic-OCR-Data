@@ -98,7 +98,7 @@ class font:
         return f
 
 class Text:
-    def __init__(self, font: str, config: Config):
+    def __init__(self, font: font, config: Config):
         assert font, 'missing font_path'
 
         self.font = font
@@ -112,6 +112,36 @@ class Text:
 
         self.font_fill = color.to_rgb(option=self.config.font_fill)
         self.stroke_fill = self.config.stroke_fill(self.font_fill)
+    
+    def get_center(self, text: str):
+        f = self.font.get_font(size=self.font_size)
+
+        left, top, right, bottom = f.getbbox(text=text, anchor='lt')
+
+        #return (int((bottom - top) / 2), int((right - left) / 2))
+
+        size = f.getsize(text)
+
+        return (int((bottom - top) / 2), int(size[0] / 2))
+
+    
+    def get_mask(self, text):
+        f = self.font.get_font(size= self.font_size)
+
+        size = f.getsize(text)
+        padded_size = (size[0] + self.stroke_width * 2, size[1] + self.stroke_width * 2)
+
+        mask, offset = f.getmask2(text, anchor='lt')
+        padded_mask, padded_offset = f.getmask2(text, stroke_width=self.stroke_width, anchor='lt')
+
+        mask_arr = np.pad(np.array(mask).reshape(int(len(mask) / size[0]), size[0]), self.stroke_width)
+        padded_mask_arr = np.array(padded_mask).reshape(int(len(padded_mask) / padded_size[0]), padded_size[0])
+
+        m = np.clip(np.add(mask_arr, padded_mask_arr), 0, 1, dtype='int') * 255
+
+        return (m, offset)
+
+
 
 
 
