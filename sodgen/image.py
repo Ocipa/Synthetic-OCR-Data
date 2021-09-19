@@ -1,9 +1,6 @@
 
 
 
-from typing import Text
-
-from numpy.random.mtrand import rand
 from sodgen import config
 from sodgen.config import Config
 from sodgen.fonts import *

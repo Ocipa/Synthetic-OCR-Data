@@ -1,12 +1,8 @@
 
-from os import error
-from sys import is_finalizing
-
 from sodgen.config import Config
 import sodgen.color as color
 
 import requests
-from requests.models import MissingSchema
 session = requests.session()
 
 from zipfile import ZipFile
@@ -15,6 +11,8 @@ from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
 import numpy as np
 import random
+
+from math import floor, ceil
 
 import os
 # import sys
@@ -122,7 +120,7 @@ class Text:
 
         size = f.getsize(text)
 
-        return (int((bottom - top) / 2), int(size[0] / 2))
+        return (ceil((bottom - top) / 2), ceil(size[0] / 2))
 
     
     def get_mask(self, text):
