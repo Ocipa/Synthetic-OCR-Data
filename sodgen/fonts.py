@@ -121,11 +121,7 @@ class Text:
 
         left, top, right, bottom = f.getbbox(text=text, anchor='lt')
 
-        #return (int((bottom - top) / 2), int((right - left) / 2))
-
-        size = f.getsize(text)
-
-        return (ceil((bottom - top) / 2), ceil(size[0] / 2))
+        return ((bottom + top) / 2, (right + left) / 2)
 
     
     def get_mask(self, text):

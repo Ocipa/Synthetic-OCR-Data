@@ -76,15 +76,15 @@ class image():
 
         pos = text.pos
 
-        mask = mask[np.abs(np.clip((pos[1] - floor(height / 2)), -999, 0)):np.abs(pos[1] - im_height - ceil(height / 2))]
-        mask = mask[:, np.abs(np.clip(pos[0] - floor(width / 2), -999, 0)):np.abs(pos[0] - im_width - ceil(width / 2))]
+        mask = mask[np.abs(np.clip((pos[1] - floor(height / 2)), None, 0)):np.abs(pos[1] - im_height - ceil(height / 2))]
+        mask = mask[:, np.abs(np.clip(pos[0] - floor(width / 2), None, 0)):np.abs(pos[0] - im_width - ceil(width / 2))]
 
         new_height, new_width = mask.shape
 
-        top_pad = np.clip(pos[1] - ceil(new_height / (2 / (height / new_height))), 0, im_height)
+        top_pad = np.clip(pos[1] - ceil(round(new_height / (2 / (height / new_height)), 1)), 0, im_height)
         bottom_pad = im_height - (top_pad + new_height)
 
-        left_pad = np.clip(pos[0] - ceil(new_width / (2 / (width / new_width))), 0, im_width)
+        left_pad = np.clip(pos[0] - ceil(round(new_width / (2 / (width / new_width)), 1)), 0, im_width)
         right_pad = im_width - (left_pad + new_width)
 
         padded_mask = np.pad(mask, ((top_pad, bottom_pad), (left_pad, right_pad)))
