@@ -44,14 +44,13 @@ class image():
 
     def _draw_text(self):
         font = random.choice(self.fonts)
-        pos = (random.randint(0, 256), random.randint(0, 256))
 
-        text = Text(font=font, pos=pos, config=self.config)
+        text = Text(font=font, text='Text!', config=self.config)
         center = text.get_center('Text!')
 
         draw = ImageDraw.Draw(self.image)
         draw.text(
-            (pos[0] - center[1], pos[1] - center[0]),
+            (text.pos[0] - center[1], text.pos[1] - center[0]),
             'Text!',
             fill = text.font_fill,
             font = text.font.get_font(text.font_size),
@@ -64,7 +63,7 @@ class image():
         draw.line([(128, 0), (128, 256)], fill=0, width=2)
         draw.line([(0, 128), (256, 128)], fill=0, width=2)
 
-        self._draw_mask(text)
+        #self._draw_mask(text)
 
         
     

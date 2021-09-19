@@ -96,13 +96,10 @@ class font:
         return f
 
 class Text:
-    def __init__(self, font: font, pos: tuple, config: Config):
+    def __init__(self, text: str, font: font, config: Config):
         assert font, 'missing font_path'
 
-        assert pos, 'missing position eg. (x, y)'
-        assert isinstance(pos, tuple), 'position needs to be a tuple eg. (x, y)'
-
-        self.pos = pos
+        self.text = text
 
         self.font = font
         self.config = config
@@ -115,6 +112,26 @@ class Text:
 
         self.font_fill = color.to_rgb(option=self.config.font_fill)
         self.stroke_fill = self.config.stroke_fill(self.font_fill)
+
+        self.pos = self._find_valid_placement()
+
+    def _find_valid_placement(self):
+        pos = (random.randint(0, self.config.size[0]), random.randint(0, self.config.size[1]))
+
+        attempts = self.config.text_placement_attempts
+        force_inbounds = self.config.text_force_inbounds
+
+        mask, offset = self.get_mask(self.text)
+        text_height, text_width = mask.shape
+
+        if force_inbounds:
+            minx, maxx = int(text_width / 2), int(self.config.size[0] - text_width / 2)
+            miny, maxy = int(text_height / 2), int(self.config.size[1] - text_height / 2)
+            
+            pos = (random.randint(minx, maxx), random.randint(miny, maxy))
+
+            
+        return pos
     
     def get_center(self, text: str):
         f = self.font.get_font(size=self.font_size)
