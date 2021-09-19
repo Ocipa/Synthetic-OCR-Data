@@ -33,19 +33,26 @@ class image():
         do background stuff here
         '''
 
-        self._draw_text()
+
+        self.target_text_number = self.config.target_text_number
+        if isinstance(self.target_text_number, tuple):
+            self.target_text_number = random.randint(*self.target_text_number)
+        
+        for i in range(self.target_text_number):
+            self._draw_text()
 
 
     def _draw_text(self):
         font = random.choice(self.fonts)
+        pos = (random.randint(0, 256), random.randint(0, 256))
 
-        text = Text(font=font, config=self.config)
-        center = text.get_center('00')
+        text = Text(font=font, pos=pos, config=self.config)
+        center = text.get_center('Text!')
 
         draw = ImageDraw.Draw(self.image)
         draw.text(
-            (0 - center[1], 0 - center[0]),
-            '00',
+            (pos[0] - center[1], pos[1] - center[0]),
+            'Text!',
             fill = text.font_fill,
             font = text.font.get_font(text.font_size),
             stroke_width = text.stroke_width,
@@ -62,12 +69,12 @@ class image():
         
     
     def _draw_mask(self, text: Text):
-        mask, offset = text.get_mask('00')
+        mask, offset = text.get_mask('Text!')
         height, width = mask.shape
 
         im_width, im_height = self.config.size
 
-        pos = (random.randint(0, 256), random.randint(0, 256)) #x, y
+        pos = text.pos
 
         mask = mask[np.abs(np.clip((pos[1] - floor(height / 2)), -999, 0)):np.abs(pos[1] - im_height - ceil(height / 2))]
         mask = mask[:, np.abs(np.clip(pos[0] - floor(width / 2), -999, 0)):np.abs(pos[0] - im_width - ceil(width / 2))]
@@ -88,6 +95,8 @@ class image():
         im2 = np.full((256, 256, 3), fill_value=128, dtype=np.uint8)
 
         self.image = np.where(padded_mask == 255, im2, im1)
+
+        self.image = Image.fromarray(self.image)
 
 
 

@@ -96,8 +96,13 @@ class font:
         return f
 
 class Text:
-    def __init__(self, font: font, config: Config):
+    def __init__(self, font: font, pos: tuple, config: Config):
         assert font, 'missing font_path'
+
+        assert pos, 'missing position eg. (x, y)'
+        assert isinstance(pos, tuple), 'position needs to be a tuple eg. (x, y)'
+
+        self.pos = pos
 
         self.font = font
         self.config = config

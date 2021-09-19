@@ -9,7 +9,7 @@ class Config:
     lang = None
 
     #
-    output_dir = '../output/'
+    output_dir = '../output/' #to-do
 
     ####################
     #### FONT STUFF ####
@@ -31,6 +31,18 @@ class Config:
     #
     stroke_fill = color.complementary
 
+    #int or tuple
+    target_text_number = 1
+
+    #
+    text_multiline = False #to-do
+
+    #
+    text_overlap = False #to-do
+
+    #
+    text_force_inbounds = False #to-do
+
     #####################
     #### IMAGE STUFF ####
     #####################
@@ -39,5 +51,5 @@ class Config:
     size = (256, 256)
 
     #
-    backgrounds_dir = None
+    backgrounds_dir = None #to-do
 
