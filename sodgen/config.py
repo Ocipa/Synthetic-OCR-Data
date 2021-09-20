@@ -9,6 +9,9 @@ class Config:
     lang = None
 
     #
+    corpus_path = None
+
+    #
     output_dir = '../output/' #to-do
 
     ####################

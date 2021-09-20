@@ -4,6 +4,7 @@
 from sodgen.config import Config
 from sodgen.fonts import *
 from sodgen.image import *
+from sodgen.corpus import Corpus
 
 import os
 
@@ -13,6 +14,7 @@ class generator:
         self.config = config
 
         self.fonts = self._get_fonts()
+        self.corpus = self._get_corpus()
 
 
     def _get_fonts(self):
@@ -36,12 +38,20 @@ class generator:
     
         return fonts
     
+    def _get_corpus(self):
+        if self.config.corpus_path and isinstance(self.config.corpus_path, str):
+            assert os.path.isfile(self.config.corpus_path), 'corpus_path needs to lead to a file'
+
+            self.corpus = Corpus(self.config.corpus_path)
+        else:
+            self.corpus = Corpus()
+    
 
     def generate_images(self, num: int=1):
         images = []
 
         for i in range(1, num + 1):
-            im = image(self.fonts, config=self.config)
+            im = image(self.fonts, corpus=self.corpus, config=self.config)
 
             if im:
                 images.append(im)

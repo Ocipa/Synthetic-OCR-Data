@@ -4,6 +4,7 @@
 from sodgen import config
 from sodgen.config import Config
 from sodgen.fonts import *
+from sodgen.corpus import *
 
 from math import floor, ceil
 
@@ -13,12 +14,13 @@ import numpy as np
 
 
 class image():
-    def __init__(self, fonts: list, config: Config):
+    def __init__(self, fonts: list, corpus: Corpus, config: Config):
         assert isinstance(fonts, list), 'missing fonts, or fonts is not a list'
         assert isinstance(config, Config), 'config is not a Config object'
 
         self.fonts = fonts
         self.config = config
+        self.corpus = corpus
 
         self.texts = []
 
@@ -47,7 +49,7 @@ class image():
     def _draw_text(self):
         font = random.choice(self.fonts)
 
-        text = Text(font=font, text='Text!', config=self.config)
+        text = Text(font=font, text=self.corpus.get_random_line(), config=self.config)
         text.set_pos(texts=self.texts)
 
         if isinstance(text.pos, tuple):
