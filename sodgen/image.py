@@ -20,6 +20,8 @@ class image():
         self.fonts = fonts
         self.config = config
 
+        self.texts = []
+
         self._build()
     
     def _build(self):
@@ -46,29 +48,34 @@ class image():
         font = random.choice(self.fonts)
 
         text = Text(font=font, text='Text!', config=self.config)
-        center = text.get_center('Text!')
+        text.set_pos(texts=self.texts)
 
-        draw = ImageDraw.Draw(self.image)
-        draw.text(
-            (text.pos[0] - center[1], text.pos[1] - center[0]),
-            'Text!',
-            fill = text.font_fill,
-            font = text.font.get_font(text.font_size),
-            stroke_width = text.stroke_width,
-            stroke_fill = text.stroke_fill,
-            anchor = 'lt',
-            spacing = 20,
-        )
+        if isinstance(text.pos, tuple):
+            self.texts.append(text)
 
-        draw.line([(128, 0), (128, 256)], fill=0, width=2)
-        draw.line([(0, 128), (256, 128)], fill=0, width=2)
+            center = text.get_center(text.text)
 
-        #self._draw_mask(text)
+            draw = ImageDraw.Draw(self.image)
+            draw.text(
+                (text.pos[0] - center[1], text.pos[1] - center[0]),
+                text.text,
+                fill = text.font_fill,
+                font = text.font.get_font(text.font_size),
+                stroke_width = text.stroke_width,
+                stroke_fill = text.stroke_fill,
+                anchor = 'lt',
+                spacing = 20,
+            )
+
+            draw.line([(128, 0), (128, 256)], fill=0, width=2)
+            draw.line([(0, 128), (256, 128)], fill=0, width=2)
+
+            #self._draw_mask(text)
 
         
     
     def _draw_mask(self, text: Text):
-        mask, offset = text.get_mask('Text!')
+        mask, offset = text.get_mask(text.text)
         height, width = mask.shape
 
         im_width, im_height = self.config.size

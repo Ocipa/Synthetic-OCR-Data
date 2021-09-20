@@ -38,10 +38,7 @@ class Config:
     text_multiline = False #to-do
 
     #
-    text_placement_attempts = 3
-
-    #
-    text_overlap = False #to-do
+    text_overlap = False
 
     #
     text_force_inbounds = True

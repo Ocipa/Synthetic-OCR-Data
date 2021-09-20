@@ -113,25 +113,47 @@ class Text:
         self.font_fill = color.to_rgb(option=self.config.font_fill)
         self.stroke_fill = self.config.stroke_fill(self.font_fill)
 
-        self.pos = self._find_valid_placement()
-
-    def _find_valid_placement(self):
+        self.pos = (0, 0)
+    
+    def set_pos(self, texts: list=[]):
         pos = (random.randint(0, self.config.size[0]), random.randint(0, self.config.size[1]))
+        pos_grid = np.full(self.config.size, fill_value=0)
 
-        attempts = self.config.text_placement_attempts
         force_inbounds = self.config.text_force_inbounds
+        allow_overlap = self.config.text_overlap
 
         mask, offset = self.get_mask(self.text)
         text_height, text_width = mask.shape
 
-        if force_inbounds:
-            minx, maxx = int(text_width / 2), int(self.config.size[0] - text_width / 2)
-            miny, maxy = int(text_height / 2), int(self.config.size[1] - text_height / 2)
-            
-            pos = (random.randint(minx, maxx), random.randint(miny, maxy))
+        minx, maxx = int(text_width / 2), int(self.config.size[0] - text_width / 2)
+        miny, maxy = int(text_height / 2), int(self.config.size[1] - text_height / 2)
 
-            
-        return pos
+        if force_inbounds:
+            pos_grid[miny:maxy, minx:maxx] = 1
+
+
+        if not allow_overlap:
+            for i in texts:
+                i_mask, i_offset = i.get_mask(i.text)
+                i_text_height, i_text_width = i_mask.shape
+
+                i_minx = np.clip(int(i.pos[0] - i_text_width / 2 - text_width / 2), 0, self.config.size[0])
+                i_maxx = np.clip(int(i.pos[0] + i_text_width / 2 + text_width / 2), 0, self.config.size[0])
+
+                i_miny = np.clip(int(i.pos[1] - i_text_height / 2 - text_height / 2), 0, self.config.size[1])
+                i_maxy = np.clip(int(i.pos[1] + i_text_height / 2 + text_height / 2), 0, self.config.size[1])
+
+                pos_grid[i_miny:i_maxy, i_minx:i_maxx] = 0
+
+        num_nonzero = np.count_nonzero(pos_grid)
+        if num_nonzero > 0:
+            nonzero_y, nonzero_x = pos_grid.nonzero()
+            rint = np.random.randint(0, len(nonzero_y))
+            pos = (nonzero_x[rint], nonzero_y[rint])
+
+            self.pos = pos
+        else:
+            self.pos = None
     
     def get_center(self, text: str):
         f = self.font.get_font(size=self.font_size)
