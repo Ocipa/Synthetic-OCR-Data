@@ -67,9 +67,6 @@ class image():
                 spacing = 20,
             )
 
-            draw.line([(128, 0), (128, 256)], fill=0, width=2)
-            draw.line([(0, 128), (256, 128)], fill=0, width=2)
-
             #self._draw_mask(text)
 
         
