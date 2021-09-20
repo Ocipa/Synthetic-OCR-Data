@@ -8,54 +8,45 @@ from sodgen.image import *
 import os
 
 
+class generator:
+    def __init__(self, config: Config=Config):
+        self.config = config
 
-def generate(num: int=1, config=Config) -> str:
-    '''
-    test
+        self.fonts = self._get_fonts()
+
+
+    def _get_fonts(self):
+        fonts_dir = None
+        fonts = []
+
+        if not self.config.fonts_dir or not isinstance(self.config.fonts_dir, str):
+            assert self.config.auto_download_fonts, 'missing fonts directory and auto download fonts is False in the config'
+
+            fonts_dir = './fonts_dir'
+        else:
+            fonts_dir = self.config.fonts_dir
+        
+        if not os.path.isdir(fonts_dir):
+            download_fonts_dir(path=fonts_dir)
+        
+        assert os.path.isdir(fonts_dir), 'invalid fonts_dir'
+
+        assert self.config.lang, f'{self.config.lang} is a invalid language code'
+        fonts = get_fonts_from_dir(path=fonts_dir, lang=self.config.lang)
     
-    ---
-    num: amount of images to generate
-    config: the configuration to create the data
+        return fonts
     
-    ---
-    -> return: a path to output_dir
-    '''
-    #assert config.output_dir, 'missing output_dir, change in config'
 
-    images = []
-    fonts = []
+    def generate_images(self, num: int=1):
+        images = []
 
-    if not isinstance(config.fonts_dir, str):
-        assert config.auto_download_fonts, 'missing fonts directory and auto download fonts is False in the config'
+        for i in range(1, num + 1):
+            im = image(self.fonts, config=self.config)
 
-        fonts_dir = './fonts_dir'
-    else:
-        fonts_dir = config.fonts_dir
-    
-    if not os.path.isdir(fonts_dir):
-        download_fonts_dir(path=fonts_dir)
-    
-    assert os.path.isdir(fonts_dir), 'invalid fonts_dir'
-
-    assert config.lang, f'{config.lang} is a invalid language code'
-    fonts = get_fonts_from_dir(path=fonts_dir, lang=config.lang)
+            if im:
+                images.append(im)
+        
+        return images
+        
 
 
-    for i in range(1, num + 1):
-        im = image(fonts, config=config)
-
-        if im:
-            images.append(im)
-
-
-
-
-
-
-
-
-
-
-    #print(f'for {config.lang}, {len(fonts)} were found')
-
-    return images
