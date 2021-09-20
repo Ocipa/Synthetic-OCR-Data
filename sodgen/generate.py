@@ -39,12 +39,15 @@ class generator:
         return fonts
     
     def _get_corpus(self):
+        corpus = None
         if self.config.corpus_path and isinstance(self.config.corpus_path, str):
             assert os.path.isfile(self.config.corpus_path), 'corpus_path needs to lead to a file'
 
-            self.corpus = Corpus(self.config.corpus_path)
+            corpus = Corpus(self.config.corpus_path)
         else:
-            self.corpus = Corpus()
+            corpus = Corpus()
+        
+        return corpus
     
 
     def generate_images(self, num: int=1):
