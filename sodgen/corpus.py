@@ -1,11 +1,12 @@
 
 
 import os
-
 import random
 import string
-
+import textwrap
 import csv
+
+from sodgen.config import Config
 
 
 
@@ -43,8 +44,23 @@ class Corpus:
     
         return ''.join([random.choice(chars) for i in range(length)])
     
-    def get_random_line(self):
+    def get_random_line(self, config: Config=Config):
+        s = None
+
         if self.path:
-            return random.choice(self.lines)
+            s = random.choice(self.lines)
         else:
-            return self._random_str()
+            s = self._random_str()
+
+        if config.max_characters:
+            s = s[:config.max_characters]
+
+        if config.max_line_length:
+            s = textwrap.wrap(s, width=config.max_line_length)
+        
+        if config.text_multiline and isinstance(s, list):
+            s = '\n'.join(s)
+        elif isinstance(s, list):
+            s = s[0]
+        
+        return s

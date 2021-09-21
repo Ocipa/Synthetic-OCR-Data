@@ -23,10 +23,10 @@ class Config:
     fonts_dir = None
 
     #(min, max)
-    font_size = (30, 100)
+    font_size = (12, 16)
 
     #(min, max)
-    stroke_width = (2, 6)
+    stroke_width = (1, 2)
 
     #Color to fill for the text, int, rgb tuple or None for random
     font_fill = None
@@ -38,7 +38,13 @@ class Config:
     target_text_number = 1
 
     #
-    text_multiline = False #to-do
+    text_multiline = True
+
+    #
+    max_line_length = 80
+
+    #
+    max_characters = None
 
     #
     text_overlap = False
