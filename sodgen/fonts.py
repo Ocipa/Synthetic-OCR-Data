@@ -119,8 +119,8 @@ class Text:
         self.bbox = self._getbbox()
     
     def _render(self):
-        render = np.full((self.config.size[1], self.config.size[0], 3), 0, dtype='int')
-        im = Image.fromarray(render, mode='RGB')
+        render = np.full((self.config.size[1], self.config.size[0], 4), 0, dtype='uint8')
+        im = Image.fromarray(render, mode='RGBA')
         draw = ImageDraw.Draw(im)
 
         draw.multiline_text(

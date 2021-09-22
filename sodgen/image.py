@@ -5,6 +5,7 @@ from sodgen import config
 from sodgen.config import Config
 from sodgen.fonts import *
 from sodgen.corpus import *
+from sodgen.background import *
 
 from math import floor, ceil
 
@@ -31,13 +32,10 @@ class image():
     def _build(self):
         width, height = self.config.size
 
-        self.image = np.full((height, width, 3), fill_value=255, dtype=np.uint8)
+        #self.image = np.full((height, width, 3), fill_value=255, dtype=np.uint8)
+        self.image = random_background(config=self.config)
         
-        self.image = Image.fromarray(self.image, mode='RGB')
-
-        '''
-        do background stuff here
-        '''
+        self.image = Image.fromarray(self.image, mode='RGBA')
 
 
         self.target_text_number = self.config.target_text_number
@@ -64,7 +62,7 @@ class image():
     
     def _combine_text(self):
         for i in self.texts:
-            self.image = np.where(i.render > 0, cv2.bitwise_not(i.render), self.image)
+            self.image = Image.alpha_composite(self.image, Image.fromarray(i.render, mode='RGBA'))
         
     
     # def _draw_mask(self, text: Text):
