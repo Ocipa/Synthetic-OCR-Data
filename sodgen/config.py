@@ -40,6 +40,9 @@ class Config:
     #
     text_multiline = True
 
+    #int or tuple eg. (min, max), does nothing on single line text
+    line_spacing = (2, 8)
+
     #
     max_line_length = 80
 
