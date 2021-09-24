@@ -113,6 +113,9 @@ class Text:
         self.font_fill = color.to_rgb(option=self.config.font_fill)
         self.stroke_fill = self.config.stroke_fill(self.font_fill)
 
+        rotation = self.config.text_rotation
+        self.text_rotation = int(rotation) if isinstance(rotation, (int, float)) else random.choice(rotation)
+
         align = self.config.text_align
         self.text_align = align if isinstance(align, str) else random.choice(align)
 
@@ -122,7 +125,7 @@ class Text:
         self.pos = (int(self.config.size[1] / 2), int(self.config.size[0] / 2))
 
         self.render = self._render()
-        self.bbox = self._getbbox()
+        self.render_size = self.render.shape[1::-1]
     
     def _render(self):
         render = np.full((self.config.size[1], self.config.size[0], 4), 0, dtype='uint8')
@@ -130,7 +133,7 @@ class Text:
         draw = ImageDraw.Draw(im)
 
         draw.multiline_text(
-            xy = self.pos,
+            xy = (int(self.config.size[1] / 2), int(self.config.size[0] / 2)),
             text = self.text,
             fill = self.font_fill,
             font = self.font.get_font(size=self.font_size),
@@ -145,19 +148,26 @@ class Text:
             embedded_color = False
         )
 
+        im = im.rotate(self.text_rotation, fillcolor=0)
+        a = np.array(im).nonzero()
+        
+        minx, maxx = np.min(a[1]), np.max(a[1])
+        miny, maxy = np.min(a[0]), np.max(a[0])
+
+        im = im.crop((minx, miny, maxx, maxy))
         render = np.array(im)
 
         return render
     
-    def _getbbox(self):
-        a = self.render.nonzero()
+    # def _getbbox(self):
+    #     a = self.render.nonzero()
 
-        minx, maxx = np.min(a[1]), np.max(a[1])
-        miny, maxy = np.min(a[0]), np.max(a[0])
+    #     minx, maxx = np.min(a[1]), np.max(a[1])
+    #     miny, maxy = np.min(a[0]), np.max(a[0])
 
-        c0, c1 = (minx, miny), (maxx, maxy)
+    #     c0, c1 = (minx, miny), (maxx, maxy)
 
-        return c0, c1
+    #     return c0, c1
 
     def _render_mask(self):
         render = self.render.copy()
@@ -173,8 +183,7 @@ class Text:
         force_inbounds = self.config.text_force_inbounds
         allow_overlap = self.config.text_overlap
 
-        width = self.bbox[1][0] - self.bbox[0][0]
-        height = self.bbox[1][1] - self.bbox[0][1]
+        width, height = self.render_size
 
         if force_inbounds:
             minx, maxx = int(width / 2), int(self.config.size[0] - width / 2)
@@ -184,8 +193,7 @@ class Text:
         
         if not allow_overlap:
             for i in texts:
-                i_width = i.bbox[1][0] - i.bbox[0][0]
-                i_height = i.bbox[1][1] - i.bbox[0][1]
+                i_width, i_height = i.render_size
 
                 i_minx = np.clip(int(i.pos[0] - i_width / 2 - width / 2), 0, self.config.size[0])
                 i_maxx = np.clip(int(i.pos[0] + i_width / 2 + width / 2), 0, self.config.size[0])
@@ -203,9 +211,6 @@ class Text:
             pos = (nonzero_x[rint], nonzero_y[rint])
 
             self.pos = pos
-
-            self.render = self._render()
-            self.bbox = self._getbbox()
         else:
             self.pos = None
 

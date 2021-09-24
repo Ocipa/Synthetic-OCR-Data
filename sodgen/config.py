@@ -37,6 +37,9 @@ class Config:
     #string: 'left' 'center' 'right' or list of strings: ['left', 'center']
     text_align = 'left'
 
+    #int or list of rotations eg. [0, 90, 180, 270] or numpy.arange(0, 360, 45)
+    text_rotation = 0
+
     #int or tuple
     target_text_number = 1
 
