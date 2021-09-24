@@ -113,6 +113,9 @@ class Text:
         self.font_fill = color.to_rgb(option=self.config.font_fill)
         self.stroke_fill = self.config.stroke_fill(self.font_fill)
 
+        align = self.config.text_align
+        self.text_align = align if isinstance(align, str) else random.choice(align)
+
         spacing = self.config.line_spacing
         self.line_spacing = spacing if isinstance(spacing, (int, float)) else random.randint(*spacing)
 
@@ -133,7 +136,7 @@ class Text:
             font = self.font.get_font(size=self.font_size),
             anchor = 'mm',
             spacing = self.line_spacing,
-            align = 'left',
+            align = self.text_align,
             direction = None,
             features = None,
             language = None,

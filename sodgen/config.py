@@ -34,6 +34,9 @@ class Config:
     #
     stroke_fill = color.complementary
 
+    #string: 'left' 'center' 'right' or list of strings: ['left', 'center']
+    text_align = 'left'
+
     #int or tuple
     target_text_number = 1
 
