@@ -122,8 +122,17 @@ class Text:
         spacing = self.config.line_spacing
         self.line_spacing = spacing if isinstance(spacing, (int, float)) else random.randint(*spacing)
 
+        self.direction = None
+
+        self.features = None
+
+        self.language = None
+
+        self.embedded_color = None
+
         self.pos = (int(self.config.size[1] / 2), int(self.config.size[0] / 2))
 
+        self.render_offset = (0, 0)
         self.render = self._render()
         self.render_size = self.render.shape[1::-1]
     
@@ -132,27 +141,76 @@ class Text:
         im = Image.fromarray(render, mode='RGBA')
         draw = ImageDraw.Draw(im)
 
-        draw.multiline_text(
-            xy = (int(self.config.size[1] / 2), int(self.config.size[0] / 2)),
-            text = self.text,
-            fill = self.font_fill,
-            font = self.font.get_font(size=self.font_size),
-            anchor = 'mm',
-            spacing = self.line_spacing,
-            align = self.text_align,
-            direction = None,
-            features = None,
-            language = None,
-            stroke_width = self.stroke_width,
-            stroke_fill = self.stroke_fill,
-            embedded_color = False
-        )
+        widths = []
+        max_width = 0
+
+        lines = self.text.split('\n')
+        line_spacing = (draw.textsize("A", font=self.font.get_font(size=self.font_size), stroke_width=self.stroke_width)[1] + self.line_spacing)
+
+        for line in lines:
+            line_width = draw.textlength(line, self.font.get_font(size=self.font_size), direction=self.direction, features=self.features, language=self.language)
+            widths.append(line_width)
+            max_width = max(max_width, line_width)
+        
+        top = self.pos[1] - (len(lines) - 1) * line_spacing / 2.0
+
+        self.lines_bbox = []
+
+        for i, v in enumerate(lines):
+            left = self.pos[0]
+            width_difference = max_width - widths[i]
+
+            if self.text_align == 'left':
+                left -= width_difference / 2.0
+            elif self.text_align == 'right':
+                left += width_difference / 2.0
+            
+            draw.text(
+                xy = (left, top),
+                text = v,
+                fill = self.font_fill,
+                font = self.font.get_font(size=self.font_size),
+                anchor = 'mm',
+                spacing = self.line_spacing,
+                align = self.text_align,
+                direction = self.direction,
+                features = self.features,
+                language = self.language,
+                stroke_width = self.stroke_width,
+                stroke_fill = self.stroke_fill,
+                embedded_color = self.embedded_color
+            )
+
+            bbox = draw.textbbox(
+                xy = (left, top),
+                text = v,
+                font = self.font.get_font(size=self.font_size),
+                anchor = 'mm',
+                spacing = self.line_spacing,
+                align = self.text_align,
+                direction = self.direction,
+                features = self.features,
+                language = self.language,
+                stroke_width = self.stroke_width,
+                embedded_color = self.embedded_color 
+            )
+
+            c0 = (bbox[0] - self.pos[0], bbox[1] - self.pos[1])
+            c1 = (bbox[2] - self.pos[0], bbox[1] - self.pos[1])
+            c2 = (bbox[2] - self.pos[0], bbox[3] - self.pos[1])
+            c3 = (bbox[0] - self.pos[0], bbox[3] - self.pos[1])
+
+            self.lines_bbox.append([c0, c1, c2, c3])
+
+            top += line_spacing
 
         im = im.rotate(self.text_rotation, fillcolor=0)
         a = np.array(im).nonzero()
         
         minx, maxx = np.min(a[1]), np.max(a[1])
         miny, maxy = np.min(a[0]), np.max(a[0])
+
+        self.render_offset = (minx - self.pos[0], miny - self.pos[1])
 
         im = im.crop((minx, miny, maxx, maxy))
         render = np.array(im)
@@ -211,6 +269,16 @@ class Text:
             pos = (nonzero_x[rint], nonzero_y[rint])
 
             self.pos = pos
+
+            for i, v in enumerate(self.lines_bbox):
+                c0, c1, c2, c3 = v
+
+                c0 = (c0[0] + self.pos[0], c0[1] + self.pos[1])
+                c1 = (c1[0] + self.pos[0], c1[1] + self.pos[1])
+                c2 = (c2[0] + self.pos[0], c2[1] + self.pos[1])
+                c3 = (c3[0] + self.pos[0], c3[1] + self.pos[1])
+
+                self.lines_bbox[i] = [c0, c1, c2, c3]
         else:
             self.pos = None
 

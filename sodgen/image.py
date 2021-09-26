@@ -1,7 +1,7 @@
 
 
 
-from sodgen import config
+from sodgen import config, utility
 from sodgen.config import Config
 from sodgen.fonts import *
 from sodgen.corpus import *
@@ -65,10 +65,22 @@ class image():
             text_image = np.full((self.config.size[1], self.config.size[0], 4), 0, dtype='uint8')
             text_image = Image.fromarray(text_image, mode='RGBA')
 
-            pos = (int(i.pos[0] - i.render_size[0] / 2), int(i.pos[1] - i.render_size[1] / 2))
+            pos = (int(i.pos[0] + i.render_offset[0]), int(i.pos[1] + i.render_offset[1]))
             text_image.paste(Image.fromarray(i.render, mode='RGBA'), pos)
 
             self.image = Image.alpha_composite(self.image, text_image)
+            
+            # self.image = Image.fromarray(self.image, 'RGBA')
+        
+        for i in self.texts:
+            for i in i.lines_bbox:
+                self.image = utility.render_bounding_box(
+                    self.image,
+                    i
+                )
+        
+        self.image = Image.fromarray(self.image)
+        draw = ImageDraw.Draw(self.image)
         
     
     # def _draw_mask(self, text: Text):
