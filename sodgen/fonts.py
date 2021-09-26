@@ -133,6 +133,7 @@ class Text:
         self.pos = (int(self.config.size[1] / 2), int(self.config.size[0] / 2))
 
         self.render_offset = (0, 0)
+        self.render_offset2 = (0, 0)
         self.render = self._render()
         self.render_size = self.render.shape[1::-1]
     
@@ -211,6 +212,7 @@ class Text:
         miny, maxy = np.min(a[0]), np.max(a[0])
 
         self.render_offset = (minx - self.pos[0], miny - self.pos[1])
+        self.render_offset2 = (maxx - self.pos[0], maxy - self.pos[1])
 
         im = im.crop((minx, miny, maxx, maxy))
         render = np.array(im)
@@ -241,23 +243,25 @@ class Text:
         force_inbounds = self.config.text_force_inbounds
         allow_overlap = self.config.text_overlap
 
-        width, height = self.render_size
+        w1, w2 = (-self.render_offset[0], self.render_offset2[0])
+        h1, h2 = (-self.render_offset[1], self.render_offset2[1])
 
         if force_inbounds:
-            minx, maxx = int(width / 2), int(self.config.size[0] - width / 2)
-            miny, maxy = int(height / 2), int(self.config.size[1] - height / 2)
+            minx, maxx = int(w1), int(self.config.size[0] - w2)
+            miny, maxy = int(h1), int(self.config.size[1] - h2)
 
             pos_grid[miny:maxy, minx:maxx] = 1
         
         if not allow_overlap:
             for i in texts:
-                i_width, i_height = i.render_size
+                i_w1, i_w2 = (-i.render_offset[0], i.render_offset2[0])
+                i_h1, i_h2 = (-i.render_offset[1], i.render_offset2[1])
 
-                i_minx = np.clip(int(i.pos[0] - i_width / 2 - width / 2), 0, self.config.size[0])
-                i_maxx = np.clip(int(i.pos[0] + i_width / 2 + width / 2), 0, self.config.size[0])
+                i_minx = np.clip(int(i.pos[0] - i_w1 - w2), 0, self.config.size[0])
+                i_maxx = np.clip(int(i.pos[0] + i_w2 + w1), 0, self.config.size[0])
 
-                i_miny = np.clip(int(i.pos[1] - i_height / 2 - height / 2), 0, self.config.size[1])
-                i_maxy = np.clip(int(i.pos[1] + i_height / 2 + height / 2), 0, self.config.size[1])
+                i_miny = np.clip(int(i.pos[1] - i_h1 - h2), 0, self.config.size[1])
+                i_maxy = np.clip(int(i.pos[1] + i_h2 + h1), 0, self.config.size[1])
 
                 pos_grid[i_miny:i_maxy, i_minx:i_maxx] = 0
 
