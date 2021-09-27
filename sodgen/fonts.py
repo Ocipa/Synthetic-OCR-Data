@@ -1,6 +1,7 @@
 
 from sodgen.config import Config
 import sodgen.color as color
+from sodgen.utility import rotate_bbox
 
 import requests
 session = requests.session()
@@ -201,7 +202,10 @@ class Text:
             c2 = (bbox[2] - self.pos[0], bbox[3] - self.pos[1])
             c3 = (bbox[0] - self.pos[0], bbox[3] - self.pos[1])
 
-            self.lines_bbox.append([c0, c1, c2, c3])
+            bbox = [c0, c1, c2, c3]
+            bbox = rotate_bbox(bbox, (0, 0), self.text_rotation)
+
+            self.lines_bbox.append(bbox)
 
             top += line_spacing
 

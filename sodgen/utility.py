@@ -5,6 +5,7 @@
 import numpy as np
 from PIL import Image, ImageDraw
 
+from math import radians, cos, sin
 from time import time
 
 
@@ -95,5 +96,35 @@ def render_bounding_box(
     return np.array(image)
 
 
-def rotate_bbox(angle: int=0):
-    pass
+def rotate_point(p, center, angle):
+    '''
+    rotate a point around center by a angle
+    '''
+    x, y = (p[0] - center[0], p[1] - center[1])
+
+    r = radians(angle)
+
+    x1 = round(x * cos(r) - y * sin(r)) + center[0]
+    y1 = round(y * cos(r) + x * sin(r)) + center[1]
+
+    return (x1, y1)
+
+def rotate_bbox(bbox: list, center: tuple=(0, 0), angle: int=0):
+    '''
+    rotate a bbox around center by a angle
+
+    ---
+    :param bbox: a list of corners eg. [(c1), (c2), (c3), (c4)]
+    :param center: a point eg. (x, y)
+    :param angle: a integer to rotate points by eg. 45
+
+    ---
+    ->return: a list of corners eg. [(c1), (c2), (c3), (c4)] rotated by angle
+    '''
+    new_bbox = []
+    for (x, y) in bbox:
+        x1, y1 = rotate_point((x, y), center, -angle)
+
+        new_bbox.append((x1, y1))
+
+    return new_bbox
