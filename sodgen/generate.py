@@ -69,5 +69,7 @@ class generator:
         for i in self.images:
             self.dataset.add_image(i)
         
+        self.dataset.export()
+        
 
 

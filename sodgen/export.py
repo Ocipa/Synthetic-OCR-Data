@@ -46,14 +46,14 @@ from PIL import Image
 # ]
 
 
-def get_ordinal_name(path, default_name='00000000', extension='.jpeg'):
+def get_ordinal_name(path, default_name='00000000', extension='.png'):
     '''
     
     '''
     pass
 
 
-def get_random_name(path, chars=string.ascii_letters, length=8, extension='.jpeg'):
+def get_random_name(path, chars=string.ascii_letters, length=8, extension='.png'):
     '''
     
     '''
@@ -77,14 +77,14 @@ class default_dataset:
         self.images_path = os.path.join(self.path, 'images')
         self.annotations_path = os.path.join(self.path, 'annotations.json')
 
+        self.json_file = None
+        with open(self.annotations_path, 'r', encoding='utf8') as f:
+            self.json_file = json.load(f)
+
     def add_image(self, image):
         name = get_random_name(self.images_path)
 
-        image.image.save(self.images_path + '/' + name, format='JPEG')
-
-        json_file = None
-        with open(self.annotations_path, 'r', encoding='utf8') as f:
-            json_file = json.load(f)
+        image.image.save(self.images_path + '/' + name, format='PNG')
 
         annotation = {
             'path': name,
@@ -112,10 +112,11 @@ class default_dataset:
 
                 annotation['annotations'].append(d)
 
-        json_file.append(annotation)
-
-        with open(self.annotations_path, 'w', encoding='utf8') as f:
-            json.dump(json_file, f)
+        self.json_file.append(annotation)
+    
+    def export(self):
+         with open(self.annotations_path, 'w', encoding='utf8') as f:
+            json.dump(self.json_file, f)
         
 
     def _create_export_folders(self, delete_existing: bool=False):
