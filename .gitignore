@@ -1,6 +1,7 @@
 fonts_dir
 test.*
 output
+dataset
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -72,15 +72,16 @@ class image():
             
             # self.image = Image.fromarray(self.image, 'RGBA')
         
-        for i in self.texts:
-            for i in i.lines_bbox:
-                self.image = utility.render_bounding_box(
-                    self.image,
-                    i
-                )
+        # for i in self.texts:
+        #     for i in i.lines_bbox:
+        #         self.image = utility.render_bounding_box(
+        #             self.image,
+        #             i
+        #         )
         
-        self.image = Image.fromarray(self.image)
-        draw = ImageDraw.Draw(self.image)
+        self.image = self.image.convert('RGB')
+        #self.image = Image.fromarray(self.image)
+        # draw = ImageDraw.Draw(self.image)
         
     
     # def _draw_mask(self, text: Text):

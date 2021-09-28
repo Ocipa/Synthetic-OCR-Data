@@ -16,6 +16,10 @@ class generator:
         self.fonts = self._get_fonts()
         self.corpus = self._get_corpus()
 
+        self.images = []
+
+        self.dataset = self.config.dataset_class(config=self.config)
+
 
     def _get_fonts(self):
         fonts_dir = None
@@ -51,15 +55,19 @@ class generator:
     
 
     def generate_images(self, num: int=1):
-        images = []
-
         for i in range(1, num + 1):
             im = image(self.fonts, corpus=self.corpus, config=self.config)
 
             if im:
-                images.append(im)
+                self.images.append(im)
         
-        return images
+        #self.dataset.add_image(images[0])
+        
+        return self.images
+
+    def export_images(self):
+        for i in self.images:
+            self.dataset.add_image(i)
         
 
 

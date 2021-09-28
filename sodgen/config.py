@@ -1,4 +1,5 @@
 import sodgen.color as color
+import sodgen.export as export
 
 
 class Config:
@@ -70,4 +71,18 @@ class Config:
 
     #
     backgrounds_dir = None #to-do
+
+    ######################
+    #### EXPORT STUFF ####
+    ######################
+
+    #
+    dataset_class = export.default_dataset
+
+    #
+    export_path = './dataset'
+
+    #
+    image_save_format = 'jpeg'
+
 
