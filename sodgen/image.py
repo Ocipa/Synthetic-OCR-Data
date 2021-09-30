@@ -82,37 +82,7 @@ class image():
         self.image = self.image.convert('RGB')
         #self.image = Image.fromarray(self.image)
         # draw = ImageDraw.Draw(self.image)
-        
-    
-    # def _draw_mask(self, text: Text):
-    #     mask, offset = text.get_mask(text.text)
-    #     height, width = mask.shape
 
-    #     im_width, im_height = self.config.size
-
-    #     pos = text.pos
-
-    #     mask = mask[np.abs(np.clip((pos[1] - floor(height / 2)), None, 0)):np.abs(pos[1] - im_height - ceil(height / 2))]
-    #     mask = mask[:, np.abs(np.clip(pos[0] - floor(width / 2), None, 0)):np.abs(pos[0] - im_width - ceil(width / 2))]
-
-    #     new_height, new_width = mask.shape
-
-    #     top_pad = np.clip(pos[1] - ceil(round(new_height / (2 / (height / new_height)), 1)), 0, im_height)
-    #     bottom_pad = im_height - (top_pad + new_height)
-
-    #     left_pad = np.clip(pos[0] - ceil(round(new_width / (2 / (width / new_width)), 1)), 0, im_width)
-    #     right_pad = im_width - (left_pad + new_width)
-
-    #     padded_mask = np.pad(mask, ((top_pad, bottom_pad), (left_pad, right_pad)))
-
-    #     padded_mask = np.dstack((padded_mask, padded_mask, padded_mask))
-
-    #     im1 = np.array(self.image)
-    #     im2 = np.full((self.config.size[1], self.config.size[0], 3), fill_value=128, dtype=np.uint8)
-
-    #     self.image = np.where(padded_mask == 255, im2, im1)
-
-    #     self.image = Image.fromarray(self.image)
 
 
 
