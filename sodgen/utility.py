@@ -128,3 +128,24 @@ def rotate_bbox(bbox: list, center: tuple=(0, 0), angle: int=0):
         new_bbox.append((x1, y1))
 
     return new_bbox
+
+
+def translate_bbox(bbox: list, offset: tuple=(0, 0)):
+    '''
+    translates a bbox by offset
+
+    ---
+    :param bbox: a list of corners eg. [(c1), (c2), (c3), (c4)]
+    :param offset: a tuple to translate each point by eg. (x, y)
+
+    ---
+    ->return: a list of corners eg. [(c1), (c2), (c3), (c4)] translated by offset
+    '''
+    new_bbox = []
+
+    for (x, y) in bbox:
+        x1, y1 = (x + offset[0], y + offset[1])
+
+        new_bbox.append((x1, y1))
+
+    return new_bbox
