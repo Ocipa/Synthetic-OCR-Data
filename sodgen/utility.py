@@ -5,7 +5,7 @@
 import numpy as np
 from PIL import Image, ImageDraw
 
-from math import radians, cos, sin
+from math import radians, cos, sin, inf
 from time import time
 
 
@@ -149,3 +149,31 @@ def translate_bbox(bbox: list, offset: tuple=(0, 0)):
         new_bbox.append((x1, y1))
 
     return new_bbox
+
+def extrema_from_points(points: list):
+    '''
+    gets the minx, miny, maxx, maxy from a list of points
+
+    ---
+    :param points: a list of points eg. [(x1, y1), (x2, y2)]
+
+    ---
+    ->return: a list with 2 points [(minx, miny), (maxx, maxy)] from a list of points
+    '''
+    minx, miny = (inf, inf)
+    maxx, maxy = (-inf, -inf)
+
+    for i in points:
+        if isinstance(i, list):
+            (minx2, miny2), (maxx2, maxy2) = extrema_from_points(i)
+
+            minx, miny = (min(minx, minx2), min(miny, miny2))
+            maxx, maxy = (max(maxx, maxx2), max(maxy, maxy2))
+
+        else:
+            x, y = i
+
+            minx, miny = (min(minx, x), min(miny, y))
+            maxx, maxy = (max(maxx, x), max(maxy, y))
+    
+    return [(minx, miny), (maxx, maxy)]
