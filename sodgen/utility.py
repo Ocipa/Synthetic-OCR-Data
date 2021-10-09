@@ -122,10 +122,16 @@ def rotate_bbox(bbox: list, center: tuple=(0, 0), angle: int=0):
     ->return: a list of corners eg. [(c1), (c2), (c3), (c4)] rotated by angle
     '''
     new_bbox = []
-    for (x, y) in bbox:
-        x1, y1 = rotate_point((x, y), center, -angle)
 
-        new_bbox.append((x1, y1))
+    for i in bbox:
+        if isinstance(i, list):
+            new_bbox.append(rotate_bbox(i, center=center, angle=angle))
+        
+        else:
+            x, y = i
+            x1, y1 = rotate_point((x, y), center, -angle)
+
+            new_bbox.append((x1, y1))
 
     return new_bbox
 
@@ -143,10 +149,15 @@ def translate_bbox(bbox: list, offset: tuple=(0, 0)):
     '''
     new_bbox = []
 
-    for (x, y) in bbox:
-        x1, y1 = (x + offset[0], y + offset[1])
+    for i in bbox:
+        if isinstance(i, list):
+            new_bbox.append(translate_bbox(i, offset))
+        
+        else:
+            x, y = i
+            x1, y1 = (x + offset[0], y + offset[1])
 
-        new_bbox.append((x1, y1))
+            new_bbox.append((x1, y1))
 
     return new_bbox
 
