@@ -2,6 +2,8 @@
 
 
 
+import random
+from decimal import Decimal
 import numpy as np
 from PIL import Image, ImageDraw
 
@@ -188,3 +190,47 @@ def extrema_from_points(points: list):
             maxx, maxy = (max(maxx, x), max(maxy, y))
     
     return [(minx, miny), (maxx, maxy)]
+
+
+def config_value_to_value(value: ...) -> ...:
+    '''
+    takes a variety of types of values and returns the respective value for that type
+
+    ---
+    :param value:
+        - list: picks random value from the list, with random.choice
+        - tuple:
+            * (int x, int y): picks a random value between x and y with random. randint
+            * (float x, float y, optional int z): picks a random value between x and y
+            with random.uniform and rounds to z values after the decimal, be default, z is
+            the value of numbers after the decimal in x
+        - int: returns value unchanged
+        - string: returns value unchanged
+        - function: returns value unchanged
+        - other: returns value unchanged
+    
+    ---
+    ->return: a value, respectively to the input value
+    '''
+    if isinstance(value, (list, np.ndarray)):
+        val = random.choice(value)
+
+        return val
+    elif isinstance(value, tuple):
+        x, y, z, *_ = (*value, None)
+
+        if isinstance(x, int):
+            y = int(y)
+            val = random.randint(x, y)
+
+            return val
+        elif isinstance(x, float):
+            y = float(y)
+            if z == None:
+                z = len(str(Decimal(str(x)) % 1)) - 2
+
+            val = round(random.uniform(x, y), z)
+            
+            return val
+
+    return value
