@@ -1,5 +1,4 @@
 
-from sodgen import config, preprocessing
 from sodgen.config import Config
 import sodgen.color as color
 from sodgen.utility import rotate_bbox, translate_bbox, extrema_from_points
@@ -14,11 +13,7 @@ import skia # type: ignore
 import numpy as np
 import random
 
-from math import floor, ceil
-
 import os
-# import sys
-# sys.path.append('../')
 
 
 

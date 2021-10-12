@@ -1,22 +1,14 @@
 
 
 
-from sodgen import config, utility
 from sodgen.config import Config
-from sodgen.fonts import *
-from sodgen.corpus import *
-from sodgen.background import *
+from sodgen.fonts import Text
+from sodgen.corpus import Corpus
+from sodgen.background import random_background
 from sodgen.utility import config_value_to_value as to_value
 
-from math import floor, ceil
-import matplotlib.pyplot as plt
 import skia # type: ignore
-
 import random
-import numpy as np
-import cv2
-
-import textwrap
 
 
 class image():
