@@ -5,7 +5,7 @@ import string
 import json
 import random
 
-from PIL import Image
+from PIL.Image import fromarray
 
 
 # default annotation example
@@ -84,25 +84,28 @@ class default_dataset:
     def add_image(self, image):
         name = get_random_name(self.images_path)
 
-        image.image.save(self.images_path + '/' + name, format='PNG')
+        # TODO: test saving with skia rather than with PIL, if as
+        # fast and as good quality with both file size and image
+        # quality, then replace PIL with skia
+        im = fromarray(image.image)
+        im.save(self.images_path + '/' + name, format='PNG')
 
         annotation = {
             'path': name,
-            'width': image.image.width,
-            'height': image.image.height,
+            'width': im.width,
+            'height': im.height,
             'annotations': []
         }
 
         for i, v in enumerate(image.texts):
             text = v.text.split('\n')
-            for i2, v2 in enumerate(v.lines_bbox):
+            for i2, v2 in enumerate(v.bbox):
                 d = {
                     'group': i,
                     'text': text[i2],
                     'bbox': [
-                        #json can't serialize numpy numbers,
-                        #so this ugly is converting the bbox
-                        #to python int
+                        # NOTE: json can't serialize numpy numbers, so this ugly
+                        # is converting numpy.uint8 in the bbox to python int
                         [int(v2[0][0]), int(v2[0][1])],
                         [int(v2[1][0]), int(v2[1][1])],
                         [int(v2[2][0]), int(v2[2][1])],
