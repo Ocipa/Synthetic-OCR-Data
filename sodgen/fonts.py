@@ -1,7 +1,7 @@
 
 from sodgen.config import Config
 import sodgen.color as color
-from sodgen.utility import rotate_bbox
+from sodgen.utility import rotate_bbox, translate_bbox, extrema_from_points
 
 import requests
 session = requests.session()
@@ -9,15 +9,11 @@ session = requests.session()
 from zipfile import ZipFile
 from io import BytesIO
 
-from PIL import Image, ImageFont, ImageDraw
+import skia # type: ignore
 import numpy as np
 import random
 
-from math import floor, ceil
-
 import os
-# import sys
-# sys.path.append('../')
 
 
 
@@ -66,8 +62,7 @@ def get_fonts_from_dir(path: str, lang: str) -> list:
     for i in os.listdir(font_dir):
         f = font(os.path.join(path, lang, i))
 
-        if f.valid:
-            fonts.append(f)
+        fonts.append(f)
     
     return fonts
 
@@ -75,25 +70,10 @@ def get_fonts_from_dir(path: str, lang: str) -> list:
 class font:
     def __init__(self, path):
         self.path = path
-
-        self.valid = self._is_valid()
-
-    def _is_valid(self):
-        '''
-        checks if path to a font is valid by created a temporary PIL FreeTypeFont
-        '''
-        try:
-            self.get_font()
-            return True
-
-        except OSError:
-            return False
-        
-        return False
     
-    def get_font(self, size: int=0):
-        f = ImageFont.FreeTypeFont(self.path, size=size)
-
+    def get(self, size: int=10):
+        f = skia.Font(skia.Typeface.MakeFromFile(self.path), size)
+        
         return f
 
 class Text:
@@ -101,16 +81,17 @@ class Text:
         assert font, 'missing font_path'
 
         self.text = text
-
-        self.font = font
         self.config = config
+
+        self.font_size = random.randint(*self.config.font_size)
+        self.stroke_width = random.randint(*self.config.stroke_width)
+
+        self.font = font.get(self.font_size)
 
         self._build()
 
     def _build(self):
-        self.font_size = random.randint(*self.config.font_size)
-        self.stroke_width = random.randint(*self.config.stroke_width)
-
+        # TODO: move everything in _build to __init__ ??
         self.font_fill = color.to_rgb(option=self.config.font_fill)
         self.stroke_fill = self.config.stroke_fill(self.font_fill)
 
@@ -131,151 +112,178 @@ class Text:
 
         self.embedded_color = None
 
-        self.pos = (int(self.config.size[1] / 2), int(self.config.size[0] / 2))
+        self.pos = (0, 0)
+
+        self.fill_paint = skia.Paint(
+            AntiAlias=True,
+            Color=skia.ColorSetRGB(*self.font_fill),
+            Style=skia.Paint.kFill_Style
+        )
+
+        self.stroke_paint = None
+        if self.stroke_width > 0:
+            self.stroke_paint = skia.Paint(
+                AntiAlias=True,
+                Color=skia.ColorSetRGB(*self.stroke_fill),
+                Style=skia.Paint.kStrokeAndFill_Style,
+                StrokeWidth = self.stroke_width
+            )
 
         self.render_offset = (0, 0)
         self.render_offset2 = (0, 0)
-        self.render = self._render()
-        self.render_size = self.render.shape[1::-1]
+
+        self.bbox = self._calc_bbox()
     
-    def _render(self):
-        render = np.full((self.config.size[1], self.config.size[0], 4), 0, dtype='uint8')
-        im = Image.fromarray(render, mode='RGBA')
-        draw = ImageDraw.Draw(im)
+    def _calc_bbox(self):
+        '''
+        
+        '''
+        metrics = self.font.getMetrics()
+        line_spacing = (self.font.getSpacing() - metrics.fDescent)
 
         widths = []
         max_width = 0
 
         lines = self.text.split('\n')
-        line_spacing = (draw.textsize("A", font=self.font.get_font(size=self.font_size), stroke_width=self.stroke_width)[1] + self.line_spacing)
 
         for line in lines:
-            line_width = draw.textlength(line, self.font.get_font(size=self.font_size), direction=self.direction, features=self.features, language=self.language)
+            line_width = self.font.measureText(line, paint=self.fill_paint)
             widths.append(line_width)
             max_width = max(max_width, line_width)
         
-        top = self.pos[1] - (len(lines) - 1) * line_spacing / 2.0
+        top = 0 - (len(lines)) * line_spacing / 2 + line_spacing
 
-        self.lines_bbox = []
-
-        for i, v in enumerate(lines):
-            left = self.pos[0]
+        lines_bbox = []
+        
+        for i, line in enumerate(lines):
+            left = -max_width / 2
             width_difference = max_width - widths[i]
 
-            if self.text_align == 'left':
-                left -= width_difference / 2.0
-            elif self.text_align == 'right':
+            if self.text_align == 'center':
                 left += width_difference / 2.0
-            
-            draw.text(
-                xy = (left, top),
-                text = v,
-                fill = self.font_fill,
-                font = self.font.get_font(size=self.font_size),
-                anchor = 'mm',
-                spacing = self.line_spacing,
-                align = self.text_align,
-                direction = self.direction,
-                features = self.features,
-                language = self.language,
-                stroke_width = self.stroke_width,
-                stroke_fill = self.stroke_fill,
-                embedded_color = self.embedded_color
-            )
+            elif self.text_align == 'right':
+                left += width_difference
 
-            bbox = draw.textbbox(
-                xy = (left, top),
-                text = v,
-                font = self.font.get_font(size=self.font_size),
-                anchor = 'mm',
-                spacing = self.line_spacing,
-                align = self.text_align,
-                direction = self.direction,
-                features = self.features,
-                language = self.language,
-                stroke_width = self.stroke_width,
-                embedded_color = self.embedded_color 
-            )
 
-            c0 = (bbox[0] - self.pos[0], bbox[1] - self.pos[1])
-            c1 = (bbox[2] - self.pos[0], bbox[1] - self.pos[1])
-            c2 = (bbox[2] - self.pos[0], bbox[3] - self.pos[1])
-            c3 = (bbox[0] - self.pos[0], bbox[3] - self.pos[1])
+            glyphs = self.font.textToGlyphs(line)
+
+            positions = self.font.getPos(glyphs, origin=(0, 0))
+            sizes = self.font.getBounds(glyphs, self.stroke_paint if self.stroke_width > 0 else self.fill_paint)
+
+            minx = list(positions[0])[0] + list(sizes[0])[0] + left
+            maxx = list(positions[-1])[0] + list(sizes[-1])[2] + left
+
+            miny = min([list(i)[1] for i in sizes]) + top
+            maxy = max([list(i)[3] for i in sizes]) + top
+
+            c0 = (minx, miny)
+            c1 = (maxx, miny)
+            c2 = (maxx, maxy)
+            c3 = (minx, maxy)
 
             bbox = [c0, c1, c2, c3]
             bbox = rotate_bbox(bbox, (0, 0), self.text_rotation)
 
-            self.lines_bbox.append(bbox)
+            lines_bbox.append(bbox)
 
             top += line_spacing
-
-        im = im.rotate(self.text_rotation, fillcolor=0)
-        a = np.array(im).nonzero()
         
-        minx, maxx = np.min(a[1]), np.max(a[1])
-        miny, maxy = np.min(a[0]), np.max(a[0])
-
-        self.render_offset = (minx - self.pos[0], miny - self.pos[1])
-        self.render_offset2 = (maxx - self.pos[0], maxy - self.pos[1])
-
-        im = im.crop((minx, miny, maxx, maxy))
-        render = np.array(im)
-
-        return render
-
-    def _render_mask(self):
-        render = self.render.copy()
-
-        m = np.clip(render, 0, 1, dtype='int') * 255
-
-        return m
+        return lines_bbox
     
-    def set_pos(self, texts: list=[]):
+    def render_text(self, canvas):
+        '''
+        
+        '''
+        metrics = self.font.getMetrics()
+        line_spacing = (self.font.getSpacing() - metrics.fDescent)
+
+        widths = []
+        max_width = 0
+
+        lines = self.text.split('\n')
+
+        for line in lines:
+            line_width = self.font.measureText(line, paint=self.fill_paint)
+            widths.append(line_width)
+            max_width = max(max_width, line_width)
+        
+        top = self.pos[1] - (len(lines)) * line_spacing / 2 + line_spacing
+
+        if self.text_rotation != 0:
+            canvas.rotate(-self.text_rotation, *self.pos)
+        
+        for i, line in enumerate(lines):
+            left = self.pos[0] - max_width / 2
+            width_difference = max_width - widths[i]
+
+            if self.text_align == 'center':
+                left += width_difference / 2.0
+            elif self.text_align == 'right':
+                left += width_difference
+
+            # glyphs = self.font.textToGlyphs(line)
+            # positions = self.font.getPos(glyphs, origin=(left, top))
+
+            # TODO: change MakeFromText to MakeFromRSXform, but when using
+            # MakeFromRSXform, the bytes of the string needs to equal the length
+            # of positions (english in utf-8 is 1 bytes per character, chinese
+            # is 3 bytes per character). possible solution is to pad the positions
+            # list with a fill value, needs more investigation.
+            blob = skia.TextBlob.MakeFromText(line, self.font, skia.TextEncoding.kUTF8)
+
+            if self.stroke_width > 0:
+                canvas.drawTextBlob(blob, left, top, self.stroke_paint)
+            canvas.drawTextBlob(blob, left, top, self.fill_paint)
+
+            top += line_spacing
+        
+        if self.text_rotation != 0:
+            canvas.rotate(self.text_rotation, *self.pos)
+
+    
+    def find_pos(self, texts: list=[]):
+        '''
+        
+        '''
         pos = (random.randint(0, self.config.size[0]), random.randint(0, self.config.size[1]))
         pos_grid = np.full((self.config.size[1], self.config.size[0]), fill_value=0)
 
         force_inbounds = self.config.text_force_inbounds
         allow_overlap = self.config.text_overlap
 
-        w1, w2 = (-self.render_offset[0], self.render_offset2[0])
-        h1, h2 = (-self.render_offset[1], self.render_offset2[1])
+        (minx, miny), (maxx, maxy) = translate_bbox(extrema_from_points(self.bbox), (-self.pos[0], -self.pos[1]))
 
         if force_inbounds:
-            minx, maxx = int(w1), int(self.config.size[0] - w2)
-            miny, maxy = int(h1), int(self.config.size[1] - h2)
-
-            pos_grid[miny:maxy, minx:maxx] = 1
+            pos_grid[abs(miny):self.config.size[1] - maxy, abs(minx):self.config.size[0] - maxx] = 1
         
         if not allow_overlap:
             for i in texts:
-                i_w1, i_w2 = (-i.render_offset[0], i.render_offset2[0])
-                i_h1, i_h2 = (-i.render_offset[1], i.render_offset2[1])
+                if i is self:
+                    continue
 
-                i_minx = np.clip(int(i.pos[0] - i_w1 - w2), 0, self.config.size[0])
-                i_maxx = np.clip(int(i.pos[0] + i_w2 + w1), 0, self.config.size[0])
+                (i_w1, i_h1), (i_w2, i_h2) = translate_bbox(extrema_from_points(i.bbox), (-i.pos[0], -i.pos[1]))
 
-                i_miny = np.clip(int(i.pos[1] - i_h1 - h2), 0, self.config.size[1])
-                i_maxy = np.clip(int(i.pos[1] + i_h2 + h1), 0, self.config.size[1])
+                i_minx = np.clip(i.pos[0] - maxx + i_w1, 0, self.config.size[0])
+                i_maxx = np.clip(i.pos[0] - minx + i_w2, 0, self.config.size[0])
+
+                i_miny = np.clip(i.pos[1] - maxy + i_h1, 0, self.config.size[1])
+                i_maxy = np.clip(i.pos[1] - miny + i_h2, 0, self.config.size[1])
 
                 pos_grid[i_miny:i_maxy, i_minx:i_maxx] = 0
 
-        
+
+
         num_nonzero = np.count_nonzero(pos_grid)
         if num_nonzero > 0:
             nonzero_y, nonzero_x = pos_grid.nonzero()
             rint = np.random.randint(0, len(nonzero_y))
             pos = (nonzero_x[rint], nonzero_y[rint])
 
+            new_bbox = translate_bbox(self.bbox, (-self.pos[0], -self.pos[1]))
+
             self.pos = pos
-
-            for i, v in enumerate(self.lines_bbox):
-                c0, c1, c2, c3 = v
-
-                c0 = (c0[0] + self.pos[0], c0[1] + self.pos[1])
-                c1 = (c1[0] + self.pos[0], c1[1] + self.pos[1])
-                c2 = (c2[0] + self.pos[0], c2[1] + self.pos[1])
-                c3 = (c3[0] + self.pos[0], c3[1] + self.pos[1])
-
-                self.lines_bbox[i] = [c0, c1, c2, c3]
+            self.bbox = translate_bbox(new_bbox, self.pos)
         else:
             self.pos = None
+            self.bbox = None
+
