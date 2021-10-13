@@ -2,101 +2,109 @@
 
 
 
+import numpy as np
+import skia # type: ignore
+from math import radians, cos, sin, inf
 import random
 from decimal import Decimal
-import numpy as np
-from PIL import Image, ImageDraw
 
-from math import radians, cos, sin, inf
-from time import time
-
-
-def get_im_mode(im):
-    '''
-    returns image mode RGB or RGBA
-    '''
-    if not isinstance(im, np.ndarray):
-        im = np.array(im)
+# NOTE: from when the draw was with PIL
+# def get_im_mode(im):
+#     '''
+#     returns image mode RGB or RGBA
+#     '''
+#     if not isinstance(im, np.ndarray):
+#         im = np.array(im)
     
-    height, width, ch = im.shape
+#     height, width, ch = im.shape
 
-    mode = 'RGB' if ch == 3 else 'RGBA'
+#     mode = 'RGB' if ch == 3 else 'RGBA'
 
-    return mode
+#     return mode
 
-def rgba2rgb(im):
-    if not isinstance(im, np.ndarray):
-        im = np.array(im)
+# NOTE: from when the draw was with PIL
+# def rgba2rgb(im):
+#     if not isinstance(im, np.ndarray):
+#         im = np.array(im)
     
-    height, width, ch = im.shape
+#     height, width, ch = im.shape
 
-    if ch == 3:
-        return im
+#     if ch == 3:
+#         return im
 
-    assert ch == 4, f'RGBA image has 4 channels, {type(im)} has {ch} channels'
+#     assert ch == 4, f'RGBA image has 4 channels, {type(im)} has {ch} channels'
 
-    r, g, b, a = np.dsplit(im, 4)
-    rgb_im = np.dstack((r, g, b))
+#     r, g, b, a = np.dsplit(im, 4)
+#     rgb_im = np.dstack((r, g, b))
 
-    return rgb_im
+#     return rgb_im
 
-def rgb2rgba(im):
-    if not isinstance(im, np.ndarray):
-        im = np.array(im)
+# NOTE: from when the draw was with PIL
+# def rgb2rgba(im):
+#     if not isinstance(im, np.ndarray):
+#         im = np.array(im)
     
-    height, width, ch = im.shape
+#     height, width, ch = im.shape
 
-    if ch == 4:
-        return im
+#     if ch == 4:
+#         return im
 
-    assert ch == 3, f'RGB image has 3 channels, {type(im)} has {ch} channels'
+#     assert ch == 3, f'RGB image has 3 channels, {type(im)} has {ch} channels'
 
-    r, g, b = np.dsplit(im, 3)
-    a = np.full(r.shape, fill_value=255)
+#     r, g, b = np.dsplit(im, 3)
+#     a = np.full(r.shape, fill_value=255)
 
-    rgba_im = np.dstack((r, g, b, a))
+#     rgba_im = np.dstack((r, g, b, a))
 
-    return rgba_im
+#     return rgba_im
 
 
 
 def render_bounding_box(
-        image: np.ndarray,
-        corners: list,
-        outline_color: tuple=(40, 225, 40),
-        width: int=2,
-        fill: int=60
-    ):
+        canvas,
+        bbox: list,
+        color: tuple=(40, 225, 40),
+        stroke_width: int=2,
+        fill_alpha: int=60
+    ) -> None:
     '''
-    renders a bounding box around a list of corners
+    renders a bounding box
 
     ---
-    :param image: the image the bounding box will be rendered onto,
-        image must be numpy.ndarray or convertible with numpy.array()
-    :param corners: a list of corners eg. [(c1), (c2), (c3), (c4)]
-    :param outline_color: RGB tuple for the color of the outline of
-        the bounding box
-    :param width: the width of the outline in pixels
-    :param fill: the alpha value of the fill, eg. 0 will have no fill
+    :param canvas: the image the bounding box will be rendered onto,
+        canvas must be skia.Canvas
+    :param bbox: a bbox eg. [(c1), (c2), (c3), (c4)]
+    :param color: RGB tuple for the color of the bounding box
+    :param stroke_width: the width of the outline stroke in pixels
+    :param fill_alpha: the alpha value of the fill, eg. 0 will have no fill
         and 255 will be opaque
     
     ---
-    ->return: a numpy.ndarray image
+    ->return: None
     '''
-    if not isinstance(image, np.ndarray):
-        image = np.array(image)
+    assert isinstance(canvas, skia.Canvas), "render_bounding_box: canvas needs to be a skia.Canvas"
 
-    if get_im_mode(image) == 'RGBA':
-        image = rgba2rgb(image)
-        
-    image = Image.fromarray(image)
-    draw = ImageDraw.Draw(image, mode='RGBA')
+    paint = skia.Paint(
+        AntiAlias = True,
+        Color = skia.ColorSetARGB(fill_alpha, *color[::-1]),
+        Style = skia.Paint.kStrokeAndFill_Style,
+        StrokeWidth = stroke_width
+    )
 
-    draw.line([*corners, corners[0], corners[1]], fill=outline_color, width=width, joint='curve')
-    draw.polygon([*corners], fill=(*outline_color, fill))
+    path = skia.Path()
+    path.moveTo(*bbox[0])
+    for i in [*bbox[::-1]]:
+        path.lineTo(*i)
+    path.close()
+    
+    canvas.drawPath(path, paint)
 
-    return np.array(image)
+    if stroke_width > 0:
+        paint.setARGB(255, *color[::-1])
+        paint.setStyle(skia.Paint.kStroke_Style)
+        paint.setPathEffect(skia.DashPathEffect.Make([stroke_width * 2, stroke_width * 3], 0.0))
 
+        canvas.drawPath(path, paint)
 
 def rotate_point(p, center, angle):
     '''
