@@ -8,57 +8,6 @@ from math import radians, cos, sin, inf
 import random
 from decimal import Decimal
 
-# NOTE: from when the draw was with PIL
-# def get_im_mode(im):
-#     '''
-#     returns image mode RGB or RGBA
-#     '''
-#     if not isinstance(im, np.ndarray):
-#         im = np.array(im)
-    
-#     height, width, ch = im.shape
-
-#     mode = 'RGB' if ch == 3 else 'RGBA'
-
-#     return mode
-
-# NOTE: from when the draw was with PIL
-# def rgba2rgb(im):
-#     if not isinstance(im, np.ndarray):
-#         im = np.array(im)
-    
-#     height, width, ch = im.shape
-
-#     if ch == 3:
-#         return im
-
-#     assert ch == 4, f'RGBA image has 4 channels, {type(im)} has {ch} channels'
-
-#     r, g, b, a = np.dsplit(im, 4)
-#     rgb_im = np.dstack((r, g, b))
-
-#     return rgb_im
-
-# NOTE: from when the draw was with PIL
-# def rgb2rgba(im):
-#     if not isinstance(im, np.ndarray):
-#         im = np.array(im)
-    
-#     height, width, ch = im.shape
-
-#     if ch == 4:
-#         return im
-
-#     assert ch == 3, f'RGB image has 3 channels, {type(im)} has {ch} channels'
-
-#     r, g, b = np.dsplit(im, 3)
-#     a = np.full(r.shape, fill_value=255)
-
-#     rgba_im = np.dstack((r, g, b, a))
-
-#     return rgba_im
-
-
 
 def render_bounding_box(
         canvas,
