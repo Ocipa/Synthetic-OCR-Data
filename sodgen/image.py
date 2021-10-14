@@ -5,7 +5,7 @@ from sodgen.config import Config
 from sodgen.fonts import Text
 from sodgen.corpus import Corpus
 from sodgen.background import random_background
-from sodgen.utility import config_value_to_value as to_value
+from sodgen.utility import config_value_to_value
 
 import skia # type: ignore
 import random
@@ -27,7 +27,7 @@ class image():
         self.surface = skia.Surface(self.image)
         self.canvas = self.surface.getCanvas()
 
-        self.target_text_number = to_value(self.config.target_text_number)
+        self.target_text_number = config_value_to_value(self.config.target_text_number)
 
         for i in range(self.target_text_number):
             self._draw_text()

@@ -1,7 +1,7 @@
 
 from sodgen.config import Config
 import sodgen.color as color
-from sodgen.utility import rotate_bbox, translate_bbox, extrema_from_points, extra_bytes
+from sodgen.utility import rotate_bbox, translate_bbox, extrema_from_points, extra_bytes, config_value_to_value
 
 import requests
 session = requests.session()
@@ -83,8 +83,8 @@ class Text:
         self.text = text
         self.config = config
 
-        self.font_size = random.randint(*self.config.font_size)
-        self.stroke_width = random.randint(*self.config.stroke_width)
+        self.font_size = config_value_to_value(self.config.font_size)
+        self.stroke_width = config_value_to_value(self.config.stroke_width)
 
         self.font = font.get(self.font_size)
 
@@ -95,23 +95,15 @@ class Text:
         self.font_fill = color.to_rgb(option=self.config.font_fill)
         self.stroke_fill = self.config.stroke_fill(self.font_fill)
 
-        rotation = self.config.text_rotation
-        self.text_rotation = int(rotation) if isinstance(rotation, (int, float)) else random.choice(rotation)
+        self.text_rotation = config_value_to_value(self.config.text_rotation)
+        self.text_align = config_value_to_value(self.config.text_align)
 
-        align = self.config.text_align
-        self.text_align = align if isinstance(align, str) else random.choice(align)
-
-        spacing = self.config.line_spacing
-        self.line_spacing = spacing if isinstance(spacing, (int, float)) else random.randint(*spacing)
-
-        self.char_spacing_mult = self.config.char_spacing_mult
+        self.line_spacing = config_value_to_value(self.config.line_spacing)
+        self.char_spacing_mult = config_value_to_value(self.config.char_spacing_mult)
 
         self.direction = None
-
         self.features = None
-
         self.language = None
-
         self.embedded_color = None
 
         self.pos = (0, 0)
