@@ -51,6 +51,12 @@ class Config:
     line_spacing = (2, 8)
 
     #
+    char_spacing = 0
+
+    #
+    char_spacing_mult = 1
+
+    #
     max_line_length = 80
 
     #

@@ -104,6 +104,8 @@ class Text:
         spacing = self.config.line_spacing
         self.line_spacing = spacing if isinstance(spacing, (int, float)) else random.randint(*spacing)
 
+        self.char_spacing_mult = self.config.char_spacing_mult
+
         self.direction = None
 
         self.features = None
@@ -168,6 +170,12 @@ class Text:
             glyphs = self.font.textToGlyphs(line)
 
             positions = self.font.getPos(glyphs, origin=(0, 0))
+            
+            for i, v in enumerate(positions):
+                x, y = v
+
+                positions[i].set(x * self.char_spacing_mult, y)
+
             sizes = self.font.getBounds(glyphs, self.stroke_paint if self.stroke_width > 0 else self.fill_paint)
 
             minx = list(positions[0])[0] + list(sizes[0])[0] + left
@@ -230,7 +238,7 @@ class Text:
             # the try.
             try:
                 xform = [
-                    *[skia.RSXform.MakeFromRadians(1, 0, *list(i), 0, 0) for i in positions]
+                    *[skia.RSXform.MakeFromRadians(1, 0, i.fX * self.char_spacing_mult, i.fY, 0, 0) for i in positions]
                 ]
 
                 blob = skia.TextBlob.MakeFromRSXform(line, xform, self.font, skia.TextEncoding.kUTF8)
@@ -239,7 +247,7 @@ class Text:
                 eb = extra_bytes(line)
 
                 xform = [
-                    *[skia.RSXform.MakeFromRadians(1, 0, *list(i), 0, 0) for i in positions],
+                    *[skia.RSXform.MakeFromRadians(1, 0, i.fX * self.char_spacing_mult, i.fY, 0, 0) for i in positions],
                     *[skia.RSXform.MakeFromRadians(1, 0, 0, 0, 0, 0) for i in range(eb)]
                 ]
 
