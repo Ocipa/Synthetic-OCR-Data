@@ -1,7 +1,7 @@
 
 from sodgen.config import Config
 import sodgen.color as color
-from sodgen.utility import rotate_bbox, translate_bbox, extrema_from_points
+from sodgen.utility import rotate_bbox, translate_bbox, extrema_from_points, extra_bytes
 
 import requests
 session = requests.session()
@@ -221,15 +221,29 @@ class Text:
             elif self.text_align == 'right':
                 left += width_difference
 
-            # glyphs = self.font.textToGlyphs(line)
-            # positions = self.font.getPos(glyphs, origin=(left, top))
+            glyphs = self.font.textToGlyphs(line)
+            positions = self.font.getPos(glyphs, origin=(0, 0))
 
-            # TODO: change MakeFromText to MakeFromRSXform, but when using
-            # MakeFromRSXform, the bytes of the string needs to equal the length
-            # of positions (english in utf-8 is 1 bytes per character, chinese
-            # is 3 bytes per character). possible solution is to pad the positions
-            # list with a fill value, needs more investigation.
-            blob = skia.TextBlob.MakeFromText(line, self.font, skia.TextEncoding.kUTF8)
+            # NOTE: skia-python has a bug (#153 github issue) where it assumes all characters
+            # are 1 byte like english, but languages like chinese are 3 bytes per character.
+            # if this is patched, then replace this try except with the code inside of
+            # the try.
+            try:
+                xform = [
+                    *[skia.RSXform.MakeFromRadians(1, 0, *list(i), 0, 0) for i in positions]
+                ]
+
+                blob = skia.TextBlob.MakeFromRSXform(line, xform, self.font, skia.TextEncoding.kUTF8)
+
+            except RuntimeError:
+                eb = extra_bytes(line)
+
+                xform = [
+                    *[skia.RSXform.MakeFromRadians(1, 0, *list(i), 0, 0) for i in positions],
+                    *[skia.RSXform.MakeFromRadians(1, 0, 0, 0, 0, 0) for i in range(eb)]
+                ]
+
+                blob = skia.TextBlob.MakeFromRSXform(line, xform, self.font, skia.TextEncoding.kUTF8)
 
             if self.stroke_width > 0:
                 canvas.drawTextBlob(blob, left, top, self.stroke_paint)
