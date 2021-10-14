@@ -191,3 +191,27 @@ def config_value_to_value(value: ...) -> ...:
             return val
 
     return value
+
+
+def extra_bytes(txt: str, encoding: str='utf8') -> int:
+    '''
+    returns the amount of "extra bytes" from a utf string,
+    where the 'extra bytes' is the amount of bytes in each
+    character, minus 1. (eg. "a" is 0 'extra bytes', "好"
+    is 2 'extra bytes')
+
+    ---
+    :param txt: the string to get 'extra bytes' from
+    :param encoding: the encoding type of txt
+
+    ---
+    ->return: number of 'extra bytes'
+    '''
+    num = 0
+
+    for i in txt:
+        lb = len(bytes(i, encoding))
+
+        num += (lb - 1)
+    
+    return num
