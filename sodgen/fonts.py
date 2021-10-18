@@ -108,17 +108,23 @@ class Text:
 
         self.pos = (0, 0)
 
+        # NOTE: skia.ColorSetRGB seems to actually be BGR, so
+        # the colors get reversed, if this gets fixed in the
+        # skia library, then remove the [::-1]
         self.fill_paint = skia.Paint(
             AntiAlias=True,
-            Color=skia.ColorSetRGB(*self.font_fill),
+            Color=skia.ColorSetRGB(*self.font_fill[::-1]),
             Style=skia.Paint.kFill_Style
         )
 
         self.stroke_paint = None
         if self.stroke_width > 0:
+            # NOTE: skia.ColorSetRGB seems to actually be BGR, so
+            # the colors get reversed, if this gets fixed in the
+            # skia library, then remove the [::-1]
             self.stroke_paint = skia.Paint(
                 AntiAlias=True,
-                Color=skia.ColorSetRGB(*self.stroke_fill),
+                Color=skia.ColorSetRGB(*self.stroke_fill[::-1]),
                 Style=skia.Paint.kStrokeAndFill_Style,
                 StrokeWidth = self.stroke_width
             )
