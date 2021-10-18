@@ -20,7 +20,6 @@ class Config:
     ####################
 
     #
-    auto_download_fonts = True
     fonts_dir = None
 
     #(min, max)

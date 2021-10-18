@@ -5,6 +5,7 @@ from sodgen.config import Config
 from sodgen.fonts import *
 from sodgen.image import *
 from sodgen.corpus import Corpus
+from sodgen.utility import config_value_to_value
 
 import os
 
@@ -25,17 +26,8 @@ class generator:
         fonts_dir = None
         fonts = []
 
-        if not self.config.fonts_dir or not isinstance(self.config.fonts_dir, str):
-            assert self.config.auto_download_fonts, 'missing fonts directory and auto download fonts is False in the config'
-
-            fonts_dir = './fonts_dir'
-        else:
-            fonts_dir = self.config.fonts_dir
-        
-        if not os.path.isdir(fonts_dir):
-            download_fonts_dir(path=fonts_dir)
-        
-        assert os.path.isdir(fonts_dir), 'invalid fonts_dir'
+        fonts_dir = config_value_to_value(self.config.fonts_dir)
+        assert os.path.isdir(fonts_dir), f'{fonts_dir} is not a valid directory'
 
         assert self.config.lang, f'{self.config.lang} is a invalid language code'
         fonts = get_fonts_from_dir(path=fonts_dir, lang=self.config.lang)

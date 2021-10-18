@@ -3,40 +3,12 @@ from sodgen.config import Config
 import sodgen.color as color
 from sodgen.utility import rotate_bbox, translate_bbox, extrema_from_points, extra_bytes, config_value_to_value
 
-import requests
-session = requests.session()
-
-from zipfile import ZipFile
-from io import BytesIO
-
 import skia # type: ignore
 import numpy as np
 import random
 
 import os
 
-
-
-def download_fonts_dir(path: str, download_link: str=None):
-    '''
-    downlaods fonts_dir from donwload_link
-
-    ---
-    path: path to download to eg. './fonts_dir'
-    download_link: link to downlaod fonts_dir from
-
-    ---
-    -> return: None
-    '''
-    assert isinstance(path, str), 'Invalid path'
-
-    if not download_link:
-        # dropbox folder containing fonts
-        download_link = 'https://www.dropbox.com/sh/u8isqbel4h8wopm/AADvZRJsubsfVh18ZOu45f2Ka?dl=1'
-    
-    response = session.get(download_link)
-    zipped = ZipFile(BytesIO(response.content))
-    zipped.extractall(path=path)
 
 
 def get_fonts_from_dir(path: str, lang: str) -> list:
