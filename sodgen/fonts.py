@@ -113,13 +113,15 @@ class Text:
         metrics = self.font.getMetrics()
         line_spacing = (self.font.getSpacing() - metrics.fDescent)
 
+        paint = self.stroke_paint if self.stroke_width > 0 else self.fill_paint
+
         widths = []
         max_width = 0
 
         lines = self.text.split('\n')
 
         for line in lines:
-            line_width = self.font.measureText(line, paint=self.fill_paint)
+            line_width = self.font.measureText(line, paint=paint)
             widths.append(line_width)
             max_width = max(max_width, line_width)
         
@@ -146,7 +148,7 @@ class Text:
 
                 positions[i].set(x * self.char_spacing_mult, y)
 
-            sizes = self.font.getBounds(glyphs, self.stroke_paint if self.stroke_width > 0 else self.fill_paint)
+            sizes = self.font.getBounds(glyphs, paint)
 
             minx = list(positions[0])[0] + list(sizes[0])[0] + left
             maxx = list(positions[-1])[0] + list(sizes[-1])[2] + left
@@ -175,13 +177,15 @@ class Text:
         metrics = self.font.getMetrics()
         line_spacing = (self.font.getSpacing() - metrics.fDescent)
 
+        paint = self.stroke_paint if self.stroke_width > 0 else self.fill_paint
+
         widths = []
         max_width = 0
 
         lines = self.text.split('\n')
 
         for line in lines:
-            line_width = self.font.measureText(line, paint=self.fill_paint)
+            line_width = self.font.measureText(line, paint=paint)
             widths.append(line_width)
             max_width = max(max_width, line_width)
         
