@@ -111,7 +111,7 @@ class Text:
         
         '''
         metrics = self.font.getMetrics()
-        line_spacing = (self.font.getSpacing() - metrics.fDescent)
+        line_spacing = self.font.getSpacing()
 
         paint = self.stroke_paint if self.stroke_width > 0 else self.fill_paint
 
@@ -175,7 +175,7 @@ class Text:
         
         '''
         metrics = self.font.getMetrics()
-        line_spacing = (self.font.getSpacing() - metrics.fDescent)
+        line_spacing = self.font.getSpacing()
 
         paint = self.stroke_paint if self.stroke_width > 0 else self.fill_paint
 
