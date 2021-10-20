@@ -64,7 +64,7 @@ class Text:
 
     def _build(self):
         # TODO: move everything in _build to __init__ ??
-        self.font_fill = color.to_rgb(option=self.config.font_fill)
+        self.font_fill = color.to_rgb(config_value_to_value(self.config.font_fill))
         self.stroke_fill = self.config.stroke_fill(self.font_fill)
 
         self.text_rotation = config_value_to_value(self.config.text_rotation)
